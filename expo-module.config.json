@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoMdmModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.mdm.ExpoMdmModule"]
+  }
+}
