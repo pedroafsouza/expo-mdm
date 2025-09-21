@@ -25,19 +25,19 @@
     "expo-mdm",
     "ExpoMdm"
   ],
-  "repository": "https://github.com/pefreita/expo-mdm",
+  "repository": "https://github.com/pedroafsouza/expo-mdm",
   "bugs": {
-    "url": "https://github.com/pefreita/expo-mdm/issues"
+    "url": "https://github.com/pedroafsouza/expo-mdm/issues"
   },
-  "author": "Pedro Augusto Freitas de Souza <pefreita@microsoft.com> (https://github.com/pefreita)",
+  "author": "Pedro Augusto Freitas de Souza <pefreita@microsoft.com> (https://github.com/pedroafsouza)",
   "license": "MIT",
-  "homepage": "https://github.com/pefreita/expo-mdm#readme",
+  "homepage": "https://github.com/pedroafsouza/expo-mdm#readme",
   "dependencies": {},
   "devDependencies": {
-    "@types/react": "~19.1.0",
-    "expo-module-scripts": "^5.0.7",
-    "expo": "^54.0.7",
-    "react-native": "0.81.4"
+    "@types/react": "~19.0.10",
+    "expo-module-scripts": "^4.0.0",
+    "expo": "^53.0.22",
+    "react-native": "0.79.6"
   },
   "peerDependencies": {
     "expo": "*",
