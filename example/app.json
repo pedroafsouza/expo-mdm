@@ -6,27 +6,46 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "expo.modules.mdm.example"
+      "bundleIdentifier": "com.example.expomdm"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "expo.modules.mdm.example"
+      "package": "com.example.expomdm"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+       "../app.plugin.js",
+        {
+          "apiUrl": {
+            "title": "API URL",
+            "description": "The URL of the API server.",
+            "type": "string",
+            "defaultValue": "https://api.example.com"
+          },
+          "enableAnalytics": {
+            "title": "Enable Analytics",
+            "description": "Whether to enable analytics.",
+            "type": "bool",
+            "defaultValue": false
+          }
+        }
+      ]
+    ]
   }
 }

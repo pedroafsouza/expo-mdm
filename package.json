@@ -4,8 +4,12 @@
   "description": "My new module",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "plugins": [
+    "app.plugin.js"
+  ],
   "scripts": {
     "build": "expo-module build",
+    "build:plugin": "expo-module build plugin",
     "clean": "expo-module clean",
     "lint": "expo-module lint",
     "test": "expo-module test",

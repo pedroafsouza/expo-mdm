@@ -1,6 +1,22 @@
 import ExpoModulesCore
 
 public class ExpoMdmModule: Module {
+  let managedConfigKey = "com.apple.managed.configuration"
+
+  public override init() {
+    super.init()
+    NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsDidChange), name: UserDefaults.didChangeNotification, object: nil)
+  }
+
+  deinit {
+    NotificationCenter.default.removeObserver(self)
+  }
+
+  @objc func userDefaultsDidChange() {
+    let managedConfig = UserDefaults.standard.dictionary(forKey: managedConfigKey) ?? [:]
+    self.sendEvent("onChange", managedConfig)
+  }
+
   // Each module class must implement the definition function. The definition consists of components
   // that describes the module's functionality and behavior.
   // See https://docs.expo.dev/modules/module-api for more details about available components.
@@ -25,11 +41,8 @@ public class ExpoMdmModule: Module {
 
     // Defines a JavaScript function that always returns a Promise and whose native code
     // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { (value: String) in
-      // Send an event to JavaScript.
-      self.sendEvent("onChange", [
-        "value": value
-      ])
+    AsyncFunction("getManagedConfigAsync") { () -> [String: Any] in
+      return UserDefaults.standard.dictionary(forKey: managedConfigKey) ?? [:]
     }
 
     // Enables the module to be used as a native view. Definition components that are accepted as part of the

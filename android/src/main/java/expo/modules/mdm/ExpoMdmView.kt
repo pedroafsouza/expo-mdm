@@ -12,19 +12,9 @@ class ExpoMdmView(context: Context, appContext: AppContext) : ExpoView(context, 
   // The name of the event is inferred from the value and needs to match the event name defined in the module.
   private val onLoad by EventDispatcher()
 
-  // Defines a WebView that will be used as the root subview.
-  internal val webView = WebView(context).apply {
-    layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-    webViewClient = object : WebViewClient() {
-      override fun onPageFinished(view: WebView, url: String) {
-        // Sends an event to JavaScript. Triggers a callback defined on the view component in JavaScript.
-        onLoad(mapOf("url" to url))
-      }
-    }
-  }
 
   init {
-    // Adds the WebView to the view hierarchy.
-    addView(webView)
+      val myIntent = Intent(context, ExpoMdmActivity::class.java)
+      context.startActivity(myIntent);
   }
 }

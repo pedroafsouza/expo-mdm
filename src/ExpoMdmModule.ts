@@ -5,7 +5,7 @@ import { ExpoMdmModuleEvents } from './ExpoMdm.types';
 declare class ExpoMdmModule extends NativeModule<ExpoMdmModuleEvents> {
   PI: number;
   hello(): string;
-  setValueAsync(value: string): Promise<void>;
+  getManagedConfigAsync(): Promise<Record<string, any>>;
 }
 
 // This call loads the native module object from the JSI.

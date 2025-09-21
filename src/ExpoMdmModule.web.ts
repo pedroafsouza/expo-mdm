@@ -4,8 +4,9 @@ import { ExpoMdmModuleEvents } from './ExpoMdm.types';
 
 class ExpoMdmModule extends NativeModule<ExpoMdmModuleEvents> {
   PI = Math.PI;
-  async setValueAsync(value: string): Promise<void> {
-    this.emit('onChange', { value });
+  async getManagedConfigAsync(): Promise<Record<string, any>> {
+    console.log('getManagedConfigAsync is not implemented on web.');
+    return {};
   }
   hello() {
     return 'Hello world! 👋';
