@@ -1,6 +1,7 @@
 import {
   ConfigPlugin,
   withAndroidManifest,
+  withDangerousMod,
   withPlugins,
 } from "@expo/config-plugins";
 import fs from "fs";
@@ -68,44 +69,45 @@ function buildStringsXml(restrictions: MdmMap) {
   xml += "</resources>";
   return xml;
 }
-const withConfigPlugin = (mdmMap: MdmMap) => {
-  const withAndroidActivity: ConfigPlugin = (config) => {
-    // Define paths for the resource directories
-    const resDir = path.join("android", "app", "src", "main", "res");
-    const xmlDir = path.join(resDir, "xml");
-    const valuesDir = path.join(resDir, "values");
+const processMapping = (mdmMap: MdmMap) => {
+  // Define paths for the resource directories
+  const resDir = path.join("android", "app", "src", "main", "res");
+  const xmlDir = path.join(resDir, "xml");
+  const valuesDir = path.join(resDir, "values");
 
-    // Ensure the directories exist
-    fs.mkdirSync(xmlDir, { recursive: true });
-    fs.mkdirSync(valuesDir, { recursive: true });
+  // Ensure the directories exist
+  fs.mkdirSync(xmlDir, { recursive: true });
+  fs.mkdirSync(valuesDir, { recursive: true });
 
-    // --- 1. Create and write app_restrictions.xml ---
-    const restrictionsXmlString = buildRestrictionsXml(mdmMap);
-    const restrictionsXmlPath = path.join(xmlDir, "app_restrictions.xml");
-    fs.writeFileSync(restrictionsXmlPath, restrictionsXmlString);
-    console.log(`Wrote app restrictions to: ${restrictionsXmlPath}`);
+  // --- 1. Create and write app_restrictions.xml ---
+  const restrictionsXmlString = buildRestrictionsXml(mdmMap);
+  const restrictionsXmlPath = path.join(xmlDir, "app_restrictions.xml");
+  fs.writeFileSync(restrictionsXmlPath, restrictionsXmlString);
+  console.log(`Wrote app restrictions to: ${restrictionsXmlPath}`);
 
-    // --- 2. Create and write strings.xml ---
-    // Note: This will overwrite any existing strings.xml file.
-    const stringsXmlString = buildStringsXml(mdmMap);
-    const stringsPath = path.join(valuesDir, "strings.xml");
-    fs.writeFileSync(stringsPath, stringsXmlString);
-    console.log(`Wrote restriction strings to: ${stringsPath}`);
-    return withAndroidManifest(config, (modConfig) => modConfig);
-  };
-
-  return withAndroidActivity;
+  // --- 2. Create and write strings.xml ---
+  // Note: This will overwrite any existing strings.xml file.
+  const stringsXmlString = buildStringsXml(mdmMap);
+  const stringsPath = path.join(valuesDir, "strings.xml");
+  fs.writeFileSync(stringsPath, stringsXmlString);
+  console.log(`Wrote restriction strings to: ${stringsPath}`);
 };
 
- 
 /**
  * An Expo Config Plugin to automatically generate and add an
  * app_restrictions.xml and a corresponding strings.xml file for
  * Managed Device Configuration (MDM).
  */
-export const withAndroidAppRestrictions = (config: any, props: MdmMap) => {
+export const withAndroidAppRestrictions: ConfigPlugin<MdmMap> = (
+  config: any,
+  props: MdmMap
+) => {
   const mdmMap = props || {};
-
-  console.log("Arrived withAndroidAppRestrictions");
-  return withPlugins(config, [[withConfigPlugin(mdmMap), mdmMap]]);
+  return withDangerousMod(config, [
+    "android",
+    async (config) => {
+      await processMapping(mdmMap);
+      return config;
+    },
+  ]);
 };
