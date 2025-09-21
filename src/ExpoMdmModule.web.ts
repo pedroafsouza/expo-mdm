@@ -1,16 +1,22 @@
-import { registerWebModule, NativeModule } from 'expo';
+ 
 
-import { ExpoMdmModuleEvents } from './ExpoMdm.types';
-
-class ExpoMdmModule extends NativeModule<ExpoMdmModuleEvents> {
-  PI = Math.PI;
-  async getManagedConfigAsync(): Promise<Record<string, any>> {
-    console.log('getManagedConfigAsync is not implemented on web.');
-    return {};
+export default {
+  isSupported(): Promise<boolean> {
+    return Promise.resolve(false);
+  },
+  getConfiguration(): Promise<Record<string, string>> {
+    return Promise.resolve({});
+  },
+  isAppLockingAllowed(): Promise<boolean> {
+    return Promise.resolve(false);
+  },
+  isAppLocked(): Promise<boolean> {
+    return Promise.resolve(false);
+  },
+  lockApp(): Promise<boolean> {
+    return Promise.resolve(false);
+  },
+  unlockApp(): Promise<boolean> {
+    return Promise.resolve(false);
   }
-  hello() {
-    return 'Hello world! 👋';
-  }
-}
-
-export default registerWebModule(ExpoMdmModule, 'ExpoMdmModule');
+ };

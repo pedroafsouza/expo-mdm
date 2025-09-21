@@ -3,8 +3,6 @@ import { NativeModule, requireNativeModule } from 'expo';
 import { ExpoMdmModuleEvents } from './ExpoMdm.types';
 
 declare class ExpoMdmModule extends NativeModule<ExpoMdmModuleEvents> {
-  PI: number;
-  hello(): string;
   getManagedConfigAsync(): Promise<Record<string, any>>;
 }
 

@@ -1,15 +1,32 @@
-// Reexport the native module. On web, it will be resolved to ExpoMdmModule.web.ts
-// and on native platforms to ExpoMdmModule.ts
-import ExpoMdmModule from './ExpoMdmModule';
-export { default as ExpoMdmView } from './ExpoMdmView';
-export * from  './ExpoMdm.types';
+import ExpoMdmModule from "./ExpoMdm";
+import {
+  ManagedConfig,
+  ManagedConfigChangeEvent,
+  AppLockStatusChangeEvent,
+} from "./ExpoMdm.types";
 
-export const PI = ExpoMdmModule.PI;
-
-export function hello(): string {
-  return ExpoMdmModule.hello();
+export function isSupported(): Promise<boolean> {
+  return ExpoMdmModule.isSupported();
 }
 
-export async function getManagedConfigAsync(): Promise<Record<string, any>> {
-  return await ExpoMdmModule.getManagedConfigAsync();
+export function getConfiguration(): Promise<ManagedConfig> {
+  return ExpoMdmModule.getConfiguration();
 }
+
+export function isAppLockingAllowed(): Promise<boolean> {
+  return ExpoMdmModule.isAppLockingAllowed();
+}
+
+export function isAppLocked(): Promise<boolean> {
+  return ExpoMdmModule.isAppLocked();
+}
+
+export function lockApp(): Promise<boolean> {
+  return ExpoMdmModule.lockApp();
+}
+
+export function unlockApp(): Promise<boolean> {
+  return ExpoMdmModule.unlockApp();
+}
+
+export { ManagedConfig, ManagedConfigChangeEvent, AppLockStatusChangeEvent };

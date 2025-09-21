@@ -32,12 +32,16 @@
   "author": "Pedro Augusto Freitas de Souza <pefreita@microsoft.com> (https://github.com/pedroafsouza)",
   "license": "MIT",
   "homepage": "https://github.com/pedroafsouza/expo-mdm#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@expo/config-plugins": "^9.0.0"
+  },
   "devDependencies": {
     "@types/react": "~19.0.10",
-    "expo-module-scripts": "^4.0.0",
+    "@types/xml2js": "^0.4.14",
     "expo": "^53.0.22",
-    "react-native": "0.79.6"
+    "expo-module-scripts": "^4.0.0",
+    "react-native": "0.79.6",
+    "xml2js": "0.6.2"
   },
   "peerDependencies": {
     "expo": "*",
