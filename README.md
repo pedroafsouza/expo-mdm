@@ -23,6 +23,105 @@ npm install expo-mdm
 yarn add expo-mdm
 ```
 
+### Configuration
+
+Add the expo-mdm plugin to your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-mdm",
+        {
+          "android": {
+            "QueryPackages": [
+              "com.azure.authenticator",
+              "UserDetailsClient.Droid",
+              "com.microsoft.windowsintune.companyportal"
+            ],
+            "AppRestrictionsMap": {
+              "apiUrl": {
+                "title": "API URL",
+                "description": "The URL of the API server.",
+                "type": "string",
+                "defaultValue": "https://api.example.com"
+              },
+              "enableAnalytics": {
+                "title": "Enable Analytics",
+                "description": "Whether to enable analytics.",
+                "type": "bool",
+                "defaultValue": false
+              }
+            }
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+
+#### Plugin Configuration Options
+
+##### QueryPackages
+
+The `QueryPackages` array specifies which package names your app can query for. This is essential for MDM functionality as it allows your app to detect and interact with specific MDM-related applications.
+
+**Supported packages:**
+- `com.azure.authenticator` - Microsoft Authenticator app
+- `UserDetailsClient.Droid` - User details client for Android
+- `com.microsoft.windowsintune.companyportal` - Microsoft Intune Company Portal
+
+**Example:**
+```json
+"QueryPackages": [
+  "com.azure.authenticator",
+  "com.microsoft.windowsintune.companyportal"
+]
+```
+
+##### AppRestrictionsMap
+
+The `AppRestrictionsMap` defines the managed app configuration that can be set by MDM administrators. Each restriction has the following properties:
+
+- `title` - Display name for the restriction
+- `description` - Description of what the restriction does
+- `type` - Data type (`string`, `bool`, `integer`, `choice`, `multi-select`)
+- `defaultValue` - Default value if not set by MDM
+
+**Supported types:**
+- `string` - Text input
+- `bool` - Boolean (true/false)
+- `integer` - Numeric input
+- `choice` - Single selection from predefined options
+- `multi-select` - Multiple selections from predefined options
+
+**Example configurations:**
+
+```json
+"AppRestrictionsMap": {
+  "serverUrl": {
+    "title": "Server URL",
+    "description": "The URL of the backend server",
+    "type": "string",
+    "defaultValue": "https://api.company.com"
+  },
+  "debugMode": {
+    "title": "Debug Mode",
+    "description": "Enable debug logging",
+    "type": "bool",
+    "defaultValue": false
+  },
+  "maxRetries": {
+    "title": "Max Retries",
+    "description": "Maximum number of retry attempts",
+    "type": "integer",
+    "defaultValue": 3
+  }
+}
+```
+
 ### Android Testing with TestDPC
 
 The easiest way to test MDM functionality on Android is to use TestDPC (Test Device Policy Controller). Here are some important considerations:
@@ -39,6 +138,14 @@ The easiest way to test MDM functionality on Android is to use TestDPC (Test Dev
 2. Follow the device admin setup process
 3. Configure your test policies
 4. Test your expo-mdm integration
+
+#### Testing App Restrictions
+
+1. Open TestDPC
+2. Navigate to "Manage app restrictions"
+3. Find your app in the list
+4. Configure the restrictions defined in your `AppRestrictionsMap`
+5. Apply the settings and test in your app
 
 ## Contributing
 
