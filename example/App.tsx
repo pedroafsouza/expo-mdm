@@ -6,20 +6,20 @@ import {
   View,
   Platform,
 } from "react-native";
-import { getConfiguration } from "expo-mdm";
+import { getConfiguration, MDMManagedConfig } from "expo-mdm";
 
 export default function App() {
-  const [config, setConfig] = useState<Record<string, any> | null>(null);
+  const [config, setConfig] = useState<MDMManagedConfig | null>(null);
 
   useEffect(() => {
     const loadInitialConfig = async () => {
+      console.log("Fetching initial configuration...");
       const result = await getConfiguration();
-      console.log("Initial config:", result);
+      setConfig(result);
     };
     loadInitialConfig();
   }, []);
 
-  const adbCommand = `adb shell am broadcast -a com.android.application.restrictions.changed -n com.example.expomdm/expo.modules.mdm.ExpoMdmModule\\$1`;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,14 +28,6 @@ export default function App() {
         <Group name="Managed Configuration">
           <Text>{JSON.stringify(config, null, 2)}</Text>
         </Group>
-        {Platform.OS === "android" && (
-          <Group name="Testing on Android">
-            <Text>
-              Run the following command to test configuration changes:
-            </Text>
-            <Text style={styles.code}>{adbCommand}</Text>
-          </Group>
-        )}
       </ScrollView>
     </SafeAreaView>
   );

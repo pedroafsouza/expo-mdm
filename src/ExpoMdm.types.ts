@@ -1,17 +1,17 @@
 export type ExpoMdmModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
+  onChange: (params: MDMChangeEventPayload) => void;
 };
 
-export type ChangeEventPayload = {
+export type MDMChangeEventPayload = {
   value: string;
 };
 
-export type ManagedConfig = Record<string, string>;
+export type MDMManagedConfig = Record<string, string | boolean | number>;
 
-export type ManagedConfigChangeEvent = {
-  config: ManagedConfig;
+export type MDMManagedConfigChangeEvent = {
+  config: MDMManagedConfig;
 };
 
-export type AppLockStatusChangeEvent = {
+export type MDMAppLockStatusChangeEvent = {
   isLocked: boolean;
 };

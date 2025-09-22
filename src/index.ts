@@ -1,15 +1,15 @@
 import ExpoMdmModule from "./ExpoMdm";
 import {
-  ManagedConfig,
-  ManagedConfigChangeEvent,
-  AppLockStatusChangeEvent,
+  MDMManagedConfig,
+  MDMManagedConfigChangeEvent,
+  MDMAppLockStatusChangeEvent,
 } from "./ExpoMdm.types";
 
 export function isSupported(): Promise<boolean> {
   return ExpoMdmModule.isSupported();
 }
 
-export function getConfiguration(): Promise<ManagedConfig> {
+export function getConfiguration(): Promise<MDMManagedConfig> {
   return ExpoMdmModule.getConfiguration();
 }
 
@@ -29,4 +29,4 @@ export function unlockApp(): Promise<boolean> {
   return ExpoMdmModule.unlockApp();
 }
 
-export { ManagedConfig, ManagedConfigChangeEvent, AppLockStatusChangeEvent };
+export { MDMManagedConfig, MDMManagedConfigChangeEvent, MDMAppLockStatusChangeEvent };
