@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.expomdm"
@@ -30,19 +28,24 @@
     },
     "plugins": [
       [
-       "../app.plugin.js",
+        "../app.plugin.js",
         {
-          "apiUrl": {
-            "title": "API URL",
-            "description": "The URL of the API server.",
-            "type": "string",
-            "defaultValue": "https://api.example.com"
-          },
-          "enableAnalytics": {
-            "title": "Enable Analytics",
-            "description": "Whether to enable analytics.",
-            "type": "bool",
-            "defaultValue": false
+          "android": {
+            "QueryPackages": ["com.azure.authenticator", "UserDetailsClient.Droid", "com.microsoft.windowsintune.companyportal"],
+            "AppRestrictionsMap": {
+              "apiUrl": {
+                "title": "API URL",
+                "description": "The URL of the API server.",
+                "type": "string",
+                "defaultValue": "https://api.example.com"
+              },
+              "enableAnalytics": {
+                "title": "Enable Analytics",
+                "description": "Whether to enable analytics.",
+                "type": "bool",
+                "defaultValue": false
+              }
+            }
           }
         }
       ]

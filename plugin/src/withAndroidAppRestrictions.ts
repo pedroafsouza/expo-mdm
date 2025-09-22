@@ -1,13 +1,13 @@
 import {
+  AndroidConfig,
   ConfigPlugin,
+  ExportedConfigWithProps,
   withAndroidManifest,
   withDangerousMod,
-  withPlugins,
 } from "@expo/config-plugins";
 import fs from "fs";
 import path from "path";
-import { MdmMap } from "./types";
-import { ExpoConfig } from "@expo/config-types";
+import { MdmMap, MdmSettings } from "./types";
 
 // Assuming MdmMap is defined elsewhere, e.g.:
 // export type MdmMap = { [key: string]: { type: string; defaultValue?: any; description?: string; } };
@@ -83,14 +83,61 @@ const processMapping = (mdmMap: MdmMap) => {
   const restrictionsXmlString = buildRestrictionsXml(mdmMap);
   const restrictionsXmlPath = path.join(xmlDir, "app_restrictions.xml");
   fs.writeFileSync(restrictionsXmlPath, restrictionsXmlString);
-  console.log(`Wrote app restrictions to: ${restrictionsXmlPath}`);
 
   // --- 2. Create and write strings.xml ---
   // Note: This will overwrite any existing strings.xml file.
   const stringsXmlString = buildStringsXml(mdmMap);
   const stringsPath = path.join(valuesDir, "strings.xml");
   fs.writeFileSync(stringsPath, stringsXmlString);
-  console.log(`Wrote restriction strings to: ${stringsPath}`);
+  console.log("[mdm] Generated app_restrictions.xml and strings.xml");
+};
+/**
+ * @param packages An array of package names to add to the queries section.
+ * @returns A ConfigPlugin function that modifies the AndroidManifest.xml.
+ */
+export const withAndroidPackageQueries = (
+  config: ExportedConfigWithProps<AndroidConfig.Manifest.AndroidManifest>,
+  packages: string[] = []
+) => {
+  const manifest = config.modResults;
+
+  // Find or create the queries element
+  let queriesElement = manifest.manifest.queries?.[0];
+
+  if (!queriesElement) {
+    // Create queries element if it doesn't exist
+    if (!manifest.manifest.queries) {
+      manifest.manifest.queries = [];
+    }
+    queriesElement = {
+      package: [],
+      intent: [],
+    };
+    manifest.manifest.queries.push(queriesElement);
+  }
+
+  // Ensure package array exists
+  if (!queriesElement.package) {
+    queriesElement.package = [];
+  }
+
+  // Add packages to the queries section
+  packages.forEach((packageName) => {
+    // Check if package already exists to avoid duplicates
+    const existingPackage = queriesElement.package?.find(
+      (pkg: any) => pkg.$?.["android:name"] === packageName
+    );
+
+    if (!existingPackage && queriesElement.package) {
+      queriesElement.package.push({
+        $: {
+          "android:name": packageName,
+        },
+      });
+    }
+  });
+
+  return config;
 };
 
 /**
@@ -98,15 +145,44 @@ const processMapping = (mdmMap: MdmMap) => {
  * app_restrictions.xml and a corresponding strings.xml file for
  * Managed Device Configuration (MDM).
  */
-export const withAndroidAppRestrictions: ConfigPlugin<MdmMap> = (
+export const withAndroidAppRestrictions: ConfigPlugin<MdmSettings> = (
   config: any,
-  props: MdmMap
+  props: MdmSettings
 ) => {
-  const mdmMap = props || {};
+  const mdmSettings = props || {};
+
+  config = withAndroidManifest(config, (config) => {
+    if (
+      mdmSettings.android?.QueryPackages &&
+      mdmSettings.android?.QueryPackages.length > 0
+    ) {
+      const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(
+        config.modResults
+      );
+
+      AndroidConfig.Manifest.addMetaDataItemToMainApplication(
+        mainApplication,
+        "android.content.APP_RESTRICTIONS",
+        "@xml/app_restrictions",
+        "resource"
+      );
+    }
+
+    if (mdmSettings.android?.QueryPackages) {
+      config = withAndroidPackageQueries(
+        config as ExportedConfigWithProps<AndroidConfig.Manifest.AndroidManifest>,
+        mdmSettings.android?.QueryPackages
+      );
+    }
+
+    return config;
+  });
   return withDangerousMod(config, [
     "android",
     async (config) => {
-      await processMapping(mdmMap);
+      if (mdmSettings.android?.AppRestrictionsMap) {
+        await processMapping(mdmSettings.android?.AppRestrictionsMap);
+      }
       return config;
     },
   ]);
