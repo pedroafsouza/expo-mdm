@@ -1,6 +1,6 @@
  
 
-export default {
+export const ExpoMdmModuleWeb = {
   isSupported(): Promise<boolean> {
     return Promise.resolve(false);
   },
