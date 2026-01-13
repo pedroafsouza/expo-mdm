@@ -13,6 +13,16 @@ This project has been created with the intention of integrating MDM functionalit
 
 Both platforms support MDM configuration reading and app locking features.
 
+### Key Platform Differences
+
+| Feature | Android | iOS |
+|---------|---------|-----|
+| **Build-time Config** | ✅ Required (`app_restrictions.xml`) | ❌ Not needed |
+| **Config Source** | App defines schema, MDM sets values | MDM defines schema and sets values |
+| **Config Location** | RestrictionsManager API | UserDefaults (`com.apple.configuration.managed`) |
+| **Info.plist** | Not used | Not used |
+| **Plugin Setup** | Required | Optional (no-op) |
+
 ## Getting Started
 
 ### Installation
@@ -24,6 +34,10 @@ yarn add expo-mdm
 ```
 
 ### Configuration
+
+#### Android Configuration (Required)
+
+Android requires build-time configuration to generate the `app_restrictions.xml` file that MDM providers use.
 
 Add the expo-mdm plugin to your `app.json` or `app.config.js`:
 
@@ -52,6 +66,12 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
                 "description": "Whether to enable analytics.",
                 "type": "bool",
                 "defaultValue": false
+              },
+              "maxRetries": {
+                "title": "Max Retries",
+                "description": "Maximum number of retry attempts",
+                "type": "integer",
+                "defaultValue": 3
               }
             }
           }
@@ -62,15 +82,31 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
 }
 ```
 
-**Important Platform Differences:**
-- **Android** requires build-time configuration via `AppRestrictionsMap` to generate the `app_restrictions.xml` file that MDM providers use to display configuration options.
-- **iOS** does NOT require build-time configuration. MDM providers (Intune, Jamf, etc.) define the configuration schema in their own consoles and push it directly to the device at runtime. The app simply reads from `UserDefaults` at the key `com.apple.configuration.managed`.
+#### iOS Configuration (None Required)
 
-#### Plugin Configuration Options
+**iOS does NOT require any build-time configuration.**
 
-##### QueryPackages
+Unlike Android, iOS MDM works entirely at runtime:
+- 🚫 No Info.plist entries needed
+- 🚫 No build-time configuration files
+- ✅ MDM providers (Intune, Jamf, Workspace ONE, etc.) define the configuration schema in their admin consoles
+- ✅ Configuration is pushed directly to the device and stored in `UserDefaults` at `com.apple.configuration.managed`
+- ✅ Your app simply reads the configuration at runtime using `getConfiguration()`
 
-The `QueryPackages` array specifies which package names your app can query for. This is essential for MDM functionality as it allows your app to detect and interact with specific MDM-related applications.
+**Example:** If you want to configure `apiUrl` and `enableAnalytics` for iOS:
+1. Log into your MDM provider's admin console (e.g., Microsoft Intune)
+2. Create an "App Configuration Policy" for your iOS app
+3. Add key-value pairs:
+   - Key: `apiUrl`, Value: `https://api.example.com`
+   - Key: `enableAnalytics`, Value: `true`
+4. Deploy the policy to your test devices
+5. Your app will automatically read these values via `getConfiguration()`
+
+#### Android Plugin Configuration Options
+
+##### QueryPackages (Android Only)
+
+The `QueryPackages` array specifies which package names your app can query for. This is essential for MDM functionality as it allows your app to detect and interact with specific MDM-related applications on Android.
 
 **Supported packages:**
 - `com.azure.authenticator` - Microsoft Authenticator app
@@ -85,9 +121,9 @@ The `QueryPackages` array specifies which package names your app can query for. 
 ]
 ```
 
-##### AppRestrictionsMap
+##### AppRestrictionsMap (Android Only)
 
-The `AppRestrictionsMap` defines the managed app configuration that can be set by MDM administrators. Each restriction has the following properties:
+The `AppRestrictionsMap` defines the managed app configuration schema that MDM administrators will see when configuring your app. This generates the `app_restrictions.xml` file that Android MDM providers use. Each restriction has the following properties:
 
 - `title` - Display name for the restriction
 - `description` - Description of what the restriction does
