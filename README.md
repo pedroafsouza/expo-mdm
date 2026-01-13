@@ -9,9 +9,9 @@ This project has been created with the intention of integrating MDM functionalit
 ## Platform Support
 
 - ✅ **Android** - Fully implemented
-- ⏳ **iOS** - Coming soon (contributions welcome!)
+- ✅ **iOS** - Fully implemented
 
-Currently, the code has only been developed for Android. We welcome contributions for iOS implementation or will implement it in future releases.
+Both platforms support MDM configuration reading and app locking features.
 
 ## Getting Started
 
@@ -54,6 +54,20 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
                 "defaultValue": false
               }
             }
+          },
+          "ios": {
+            "AppRestrictionsMap": {
+              "apiUrl": {
+                "title": "API URL",
+                "type": "string",
+                "defaultValue": "https://api.example.com"
+              },
+              "enableAnalytics": {
+                "title": "Enable Analytics",
+                "type": "bool",
+                "defaultValue": false
+              }
+            }
           }
         }
       ]
@@ -61,6 +75,8 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
   }
 }
 ```
+
+**Note:** The iOS configuration uses the same `AppRestrictionsMap` structure but does not require `QueryPackages` as iOS handles MDM differently.
 
 #### Plugin Configuration Options
 
@@ -122,9 +138,13 @@ The `AppRestrictionsMap` defines the managed app configuration that can be set b
 }
 ```
 
-### Android Testing with TestDPC
+## Testing
 
-The easiest way to test MDM functionality on Android is to use TestDPC (Test Device Policy Controller). Here are some important considerations:
+Testing MDM functionality requires different approaches for each platform. Below are detailed instructions for both Android and iOS.
+
+### Testing on Android
+
+The easiest way to test MDM functionality on Android is to use **TestDPC** (Test Device Policy Controller), a free testing tool provided by Google.
 
 #### Prerequisites
 
@@ -134,28 +154,192 @@ The easiest way to test MDM functionality on Android is to use TestDPC (Test Dev
 
 #### Setup Steps
 
-1. Install TestDPC from Google Play Store
-2. Follow the device admin setup process
-3. Configure your test policies
-4. Test your expo-mdm integration
+1. **Install TestDPC** from Google Play Store
+2. **Set up Device Admin**:
+   - Open TestDPC
+   - Follow the device admin setup wizard
+   - Grant all necessary permissions
+3. **Configure your test policies**
+4. **Install your app** (either via ADB or as a managed app)
 
 #### Testing App Restrictions
 
-1. Open TestDPC
-2. Navigate to "Manage app restrictions"
+1. Open **TestDPC**
+2. Navigate to **"Manage app restrictions"**
 3. Find your app in the list
-4. Configure the restrictions defined in your `AppRestrictionsMap`
-5. Apply the settings and test in your app
+4. Configure the restrictions defined in your `AppRestrictionsMap`:
+   - Set values for `apiUrl`, `enableAnalytics`, etc.
+   - These values will be immediately available to your app
+5. **Test in your app**:
+   ```javascript
+   import { getConfiguration, isSupported } from 'expo-mdm';
+
+   const supported = await isSupported();
+   console.log('MDM Supported:', supported);
+
+   const config = await getConfiguration();
+   console.log('MDM Config:', config);
+   // Output: { apiUrl: "https://...", enableAnalytics: true }
+   ```
+
+#### Testing App Lock Mode (Kiosk Mode)
+
+1. In TestDPC, navigate to **"Device Policy Management"** → **"Lock task mode"**
+2. Add your app package name to the lock task whitelist
+3. In your app, test the lock functions:
+   ```javascript
+   import { lockApp, unlockApp, isAppLockingAllowed, isAppLocked } from 'expo-mdm';
+
+   const canLock = await isAppLockingAllowed();
+   if (canLock) {
+     await lockApp(); // Enters kiosk mode
+     // User cannot exit app or access other apps
+
+     await unlockApp(); // Exits kiosk mode
+   }
+   ```
+
+#### Alternative Android Testing with Microsoft Intune
+
+For enterprise testing:
+1. Enroll device in Microsoft Intune
+2. Create app configuration policy in Intune admin center
+3. Deploy configuration to test devices
+4. Test with production MDM configuration
+
+### Testing on iOS
+
+iOS MDM testing requires an Apple MDM solution. Here are several options:
+
+#### Option 1: Microsoft Intune (Recommended for Development)
+
+1. **Set up Intune trial account**:
+   - Sign up for a free Microsoft 365 trial
+   - Enable Intune in the admin center
+
+2. **Enroll your iOS device**:
+   - Install **Microsoft Intune Company Portal** from App Store
+   - Sign in with your test account
+   - Follow enrollment instructions
+
+3. **Configure App Configuration Policy**:
+   - In Intune admin center, navigate to **Apps** → **App configuration policies**
+   - Create a new policy for iOS/iPadOS managed apps
+   - Select your app
+   - Add configuration keys matching your `AppRestrictionsMap`:
+     ```xml
+     <key>apiUrl</key>
+     <string>https://api.example.com</string>
+     <key>enableAnalytics</key>
+     <true/>
+     ```
+   - Assign to test users/devices
+
+4. **Test in your app**:
+   ```javascript
+   import { getConfiguration, isSupported } from 'expo-mdm';
+
+   const supported = await isSupported();
+   console.log('MDM Supported:', supported);
+
+   const config = await getConfiguration();
+   console.log('MDM Config:', config);
+   // Output: { apiUrl: "https://...", enableAnalytics: 1 }
+   ```
+
+#### Option 2: Apple Business Manager + MDM
+
+For production testing:
+1. Enroll in **Apple Business Manager**
+2. Connect an MDM solution (Jamf, Workspace ONE, etc.)
+3. Create managed app configuration
+4. Deploy to test devices
+
+#### Option 3: Manual Testing with Xcode (Development Only)
+
+For quick local testing without MDM enrollment:
+
+1. In your iOS project, add managed configuration to your scheme:
+   - Edit Scheme → Run → Arguments
+   - Add to **Environment Variables**:
+     ```
+     com.apple.configuration.managed = {"apiUrl":"https://test.com","enableAnalytics":true}
+     ```
+
+2. Or manually set UserDefaults in your app (for development only):
+   ```javascript
+   // Development testing only - this will be replaced by actual MDM in production
+   import { NativeModules } from 'react-native';
+
+   if (__DEV__) {
+     // This simulates MDM configuration for testing
+     NativeModules.UserDefaults?.setObject(
+       { apiUrl: "https://test.com", enableAnalytics: true },
+       "com.apple.configuration.managed"
+     );
+   }
+   ```
+
+#### Testing iOS Guided Access (App Lock Mode)
+
+iOS uses **Guided Access** instead of a programmatic lock mode. To test:
+
+1. **Enable Guided Access**:
+   - Go to **Settings** → **Accessibility** → **Guided Access**
+   - Toggle on and set a passcode
+
+2. **Configure Triple Click**:
+   - Settings → **Accessibility** → **Accessibility Shortcut**
+   - Select **Guided Access**
+
+3. **Test in your app**:
+   ```javascript
+   import { isAppLockingAllowed, isAppLocked } from 'expo-mdm';
+
+   const guidedAccessEnabled = await isAppLockingAllowed();
+   console.log('Guided Access Enabled:', guidedAccessEnabled);
+
+   const inGuidedAccess = await isAppLocked();
+   console.log('Currently in Guided Access:', inGuidedAccess);
+   ```
+
+4. **Activate Guided Access**:
+   - Triple-click the side/home button while in your app
+   - Or go to Settings → Guided Access → Start
+
+**Note**: iOS does not allow programmatic entry/exit of Guided Access for security reasons. The `lockApp()` and `unlockApp()` methods will return `false` on iOS. Users must manually enable/disable Guided Access.
+
+### Testing Event Listeners
+
+Both platforms support listening to MDM configuration changes:
+
+```javascript
+import { addEventListener } from 'expo-mdm';
+
+// Listen for configuration changes
+const subscription = addEventListener('onManagedAppConfigChange', (event) => {
+  console.log('MDM config changed:', event.config);
+});
+
+// Listen for lock status changes
+const lockSubscription = addEventListener('onAppLockStatusChange', (event) => {
+  console.log('Lock status changed:', event.isLocked);
+});
+
+// Clean up
+subscription.remove();
+lockSubscription.remove();
+```
 
 ## Contributing
 
 We welcome contributions! Please feel free to submit issues, feature requests, or pull requests.
 
 ### Areas where we need help:
-- iOS implementation
 - Documentation improvements
-- Additional Android features
+- Additional features for both platforms
 - Testing and bug reports
+- Integration examples with different MDM providers
 
 ## License
 
