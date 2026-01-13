@@ -54,20 +54,6 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
                 "defaultValue": false
               }
             }
-          },
-          "ios": {
-            "AppRestrictionsMap": {
-              "apiUrl": {
-                "title": "API URL",
-                "type": "string",
-                "defaultValue": "https://api.example.com"
-              },
-              "enableAnalytics": {
-                "title": "Enable Analytics",
-                "type": "bool",
-                "defaultValue": false
-              }
-            }
           }
         }
       ]
@@ -76,7 +62,9 @@ Add the expo-mdm plugin to your `app.json` or `app.config.js`:
 }
 ```
 
-**Note:** The iOS configuration uses the same `AppRestrictionsMap` structure but does not require `QueryPackages` as iOS handles MDM differently.
+**Important Platform Differences:**
+- **Android** requires build-time configuration via `AppRestrictionsMap` to generate the `app_restrictions.xml` file that MDM providers use to display configuration options.
+- **iOS** does NOT require build-time configuration. MDM providers (Intune, Jamf, etc.) define the configuration schema in their own consoles and push it directly to the device at runtime. The app simply reads from `UserDefaults` at the key `com.apple.configuration.managed`.
 
 #### Plugin Configuration Options
 
