@@ -1,6 +1,6 @@
 {
   "name": "expo-mdm",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "An expo module to access Managed Device Management (MDM) features on iOS and Android.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
