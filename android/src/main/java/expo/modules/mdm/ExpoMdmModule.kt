@@ -9,6 +9,8 @@ import android.content.IntentFilter
 import android.content.RestrictionsManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
@@ -24,6 +26,7 @@ class ExpoMdmModule : Module() {
         const val APP_CONFIG_CHANGED_EVENT = "onManagedAppConfigChange"
         const val APP_LOCK_STATUS_CHANGED_EVENT = "onAppLockStatusChange"
         private const val TAG = "ExpoMdmModule" // Tag for logging
+        private const val EVENT_RETRY_DELAY_MS = 200L
     }
 
     // Each module class must implement the definition function.
@@ -218,6 +221,27 @@ class ExpoMdmModule : Module() {
         }
     }
 
+    private fun emitEventWithRetry(eventName: String, data: Map<String, Any>, isRetry: Boolean = false) {
+        try {
+            sendEvent(eventName, data)
+        } catch (e: IllegalArgumentException) {
+            handleEmitFailure(eventName, data, isRetry, e)
+        } catch (e: IllegalStateException) {
+            handleEmitFailure(eventName, data, isRetry, e)
+        }
+    }
+
+    private fun handleEmitFailure(eventName: String, data: Map<String, Any>, isRetry: Boolean, e: Exception) {
+        if (isRetry) {
+            Log.w(TAG, "emitEventWithRetry: Module registry still not ready after retry, dropping event '$eventName'.", e)
+        } else {
+            Log.w(TAG, "emitEventWithRetry: Module registry not ready, retrying in ${EVENT_RETRY_DELAY_MS}ms.", e)
+            Handler(Looper.getMainLooper()).postDelayed({
+                emitEventWithRetry(eventName, data, isRetry = true)
+            }, EVENT_RETRY_DELAY_MS)
+        }
+    }
+
     // --- Private methods for BroadcastReceiver management ---
 
     private fun maybeUnregisterReceiver() {
@@ -267,14 +291,9 @@ class ExpoMdmModule : Module() {
                 Log.d(TAG, "BroadcastReceiver onReceive: Sending event '$APP_CONFIG_CHANGED_EVENT' with data: $data")
                 // Use the Expo Module's built-in `sendEvent` function.
                 // Guard against the module registry not being ready yet (e.g. during
-                // startup in bridgeless / dev-client mode).
-                try {
-                    sendEvent(APP_CONFIG_CHANGED_EVENT, data)
-                } catch (e: IllegalArgumentException) {
-                    Log.w(TAG, "BroadcastReceiver onReceive: Module registry not ready, dropping event.", e)
-                } catch (e: IllegalStateException) {
-                    Log.w(TAG, "BroadcastReceiver onReceive: Module registry not ready, dropping event.", e)
-                }
+                // startup in bridgeless / dev-client mode). If it fails, retry once
+                // after a short delay to give the registry time to initialize.
+                emitEventWithRetry(APP_CONFIG_CHANGED_EVENT, data)
             }
         }
         Log.d(TAG, "maybeRegisterReceiver: Registering receiver for ACTION_APPLICATION_RESTRICTIONS_CHANGED.")
