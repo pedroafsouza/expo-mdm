@@ -265,8 +265,16 @@ class ExpoMdmModule : Module() {
                     data[key] = appRestrictions.getString(key) ?: ""
                 }
                 Log.d(TAG, "BroadcastReceiver onReceive: Sending event '$APP_CONFIG_CHANGED_EVENT' with data: $data")
-                // Use the Expo Module's built-in `sendEvent` function
-                sendEvent(APP_CONFIG_CHANGED_EVENT, data)
+                // Use the Expo Module's built-in `sendEvent` function.
+                // Guard against the module registry not being ready yet (e.g. during
+                // startup in bridgeless / dev-client mode).
+                try {
+                    sendEvent(APP_CONFIG_CHANGED_EVENT, data)
+                } catch (e: IllegalArgumentException) {
+                    Log.w(TAG, "BroadcastReceiver onReceive: Module registry not ready, dropping event.", e)
+                } catch (e: IllegalStateException) {
+                    Log.w(TAG, "BroadcastReceiver onReceive: Module registry not ready, dropping event.", e)
+                }
             }
         }
         Log.d(TAG, "maybeRegisterReceiver: Registering receiver for ACTION_APPLICATION_RESTRICTIONS_CHANGED.")
