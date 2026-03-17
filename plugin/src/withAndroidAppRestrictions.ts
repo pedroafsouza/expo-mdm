@@ -152,10 +152,7 @@ export const withAndroidAppRestrictions: ConfigPlugin<MdmSettings> = (
   const mdmSettings = props || {};
 
   config = withAndroidManifest(config, (config) => {
-    if (
-      mdmSettings.android?.QueryPackages &&
-      mdmSettings.android?.QueryPackages.length > 0
-    ) {
+    if (mdmSettings.android?.AppRestrictionsMap) {
       const mainApplication = AndroidConfig.Manifest.getMainApplicationOrThrow(
         config.modResults
       );
